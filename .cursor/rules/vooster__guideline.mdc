@@ -1,0 +1,263 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Code Guideline Document
+
+---
+
+## 1. Project Overview
+
+This project delivers a weekly digest web application that automatically clusters and summarizes Gerrit commits per team member, leveraging AI for concise, actionable summaries. The core stack includes:
+
+- **Frontend:** Next.js 14 (TypeScript), Ant Design 5, TailwindCSS, React Context, React Query
+- **Backend:** Python 3.11, FastAPI, Celery, Pydantic v2, PostgreSQL 15, Redis 7
+- **AI:** Internal LLM (Llama 2) via LangChain pipeline
+- **Infrastructure:** Docker, Kubernetes (on-prem), Helm, GitLab CI/CD
+
+Key architectural decisions:
+- Domain-driven folder structure (user, digest, feedback, infra)
+- Clear separation of presentation, service, repository, and infra layers
+- RESTful API with OpenAPI schema, JWT-based OIDC authentication
+- Async processing for AI summarization via Celery workers
+- Caching and state management via Redis, React Query
+
+---
+
+## 2. Core Principles
+
+1. **Single Responsibility:** Every module/class/function MUST have exactly one clear responsibility.
+2. **Explicitness:** All code MUST be explicit in intent; avoid implicit behavior or hidden side effects.
+3. **Consistency:** Follow established naming, structure, and style conventions across the codebase.
+4. **Testability:** All business logic MUST be unit-testable and covered by automated tests.
+5. **Security First:** Sensitive data (e.g., tokens) MUST be handled securely; never hard-code secrets.
+
+---
+
+## 3. Language-Specific Guidelines
+
+### 3.1 TypeScript (Next.js Frontend)
+
+- **File Organization**
+  - MUST organize by domain: `/src/components/`, `/src/pages/`, `/src/hooks/`, `/src/services/`, `/src/utils/`
+  - Each React component in its own file; group related components in folders.
+  - Shared types/interfaces in `/src/types/`.
+- **Import/Dependency Management**
+  - MUST use absolute imports from `src/` root.
+  - MUST import only used modules; avoid entire library imports (e.g., `import { Button } from 'antd'` not `import * as antd from 'antd'`).
+  - Third-party dependencies MUST be declared in `package.json` and updated via PR.
+- **Error Handling**
+  - All async calls (e.g., fetch, API) MUST use `try/catch`.
+  - Errors from services/hooks MUST propagate meaningful messages.
+
+```typescript
+// MUST: Clear async error handling in a service
+export async function fetchDigest(userId: string) {
+  try {
+    const res = await fetch(`/api/digest/${userId}`);
+    if (!res.ok) throw new Error('Failed to fetch digest');
+    return await res.json();
+  } catch (e) {
+    // Log and rethrow for UI handling
+    console.error(e);
+    throw e;
+  }
+}
+```
+
+```typescript
+// MUST NOT: Swallowing errors or ignoring async failures
+export async function fetchDigest(userId: string) {
+  const res = await fetch(`/api/digest/${userId}`);
+  // No error handling
+  return res.json(); // This may fail silently
+}
+```
+
+### 3.2 Python (FastAPI Backend)
+
+- **File Organization**
+  - MUST use `/app/domains/` for business logic grouped by domain (e.g., `/digest/`, `/user/`, `/feedback/`)
+  - `/app/api/` for route definitions; `/app/core/` for shared infrastructure; `/app/utils/` for helpers.
+  - Each model/schema in its own file.
+- **Import/Dependency Management**
+  - MUST use absolute imports within the app.
+  - Third-party dependencies MUST be listed in `pyproject.toml`.
+  - Circular imports MUST be avoided.
+- **Error Handling**
+  - MUST handle all external API/database calls with `try/except`.
+  - API endpoints MUST return standardized error responses (HTTPException with detail).
+
+```python
+# MUST: Proper error handling in a repository method
+from fastapi import HTTPException
+
+def get_digest_by_user(db, user_id: int):
+    try:
+        digest = db.query(Digest).filter_by(user_id=user_id).first()
+        if not digest:
+            raise HTTPException(status_code=404, detail="Digest not found")
+        return digest
+    except Exception as e:
+        # Log and return 500 error
+        logger.exception("DB error")
+        raise HTTPException(status_code=500, detail="Internal server error")
+```
+
+```python
+# MUST NOT: Unhandled exceptions or generic catch-alls
+def get_digest_by_user(db, user_id: int):
+    return db.query(Digest).filter_by(user_id=user_id).first()
+    # No error handling, may leak stacktrace or crash worker
+```
+
+---
+
+## 4. Code Style Rules
+
+### 4.1 MUST Follow
+
+- **TypeScript**
+  - MUST use strict typing (`noImplicitAny`, `strictNullChecks`).
+  - MUST use functional components and React Hooks.
+  - MUST use ESLint and Prettier; code MUST pass lint and formatting checks before merge.
+  - MUST destructure props and state for clarity.
+  - Rationale: Enforces type safety, readability, and maintainability.
+
+```typescript
+// MUST: Typed functional component and prop destructuring
+type DigestProps = { digest: DigestSummary };
+const DigestCard: React.FC<DigestProps> = ({ digest }) => (
+  <Card>
+    <p>{digest.summary}</p>
+  </Card>
+);
+```
+
+- **Python**
+  - MUST use type hints for all functions and methods.
+  - MUST use Pydantic models for all input/output schemas.
+  - MUST document all public functions and classes with docstrings.
+  - MUST use Black and isort for formatting and import order.
+  - Rationale: Ensures code clarity, schema validation, and uniform style.
+
+```python
+# MUST: Function with type hints and docstring
+def summarize_commits(commits: List[Commit]) -> str:
+    """
+    Generate a summary for the provided list of commits.
+    """
+    ...
+```
+
+### 4.2 MUST NOT Do
+
+- MUST NOT write multi-responsibility modules (e.g., service, model, and API in one file).
+- MUST NOT use any/unknown in TypeScript except when absolutely necessary and justified.
+- MUST NOT use magic numbers/strings; define constants in a shared location.
+- MUST NOT commit commented-out code or unused imports.
+- MUST NOT block the event loop in FastAPI or Celery (e.g., synchronous I/O in async routes).
+- MUST NOT use complex, ad-hoc state management patterns; always use React Context or React Query.
+
+```typescript
+// MUST NOT: Multi-responsibility file
+// Contains API call, state management, and UI in one file – split these concerns!
+```
+
+```python
+# MUST NOT: Synchronous DB call in async endpoint
+@app.get("/digest")
+async def get_digest():
+    digest = db.query(Digest).all()  # BAD: blocks event loop
+    return digest
+```
+
+---
+
+## 5. Architecture Patterns
+
+### 5.1 Component/Module Structure
+
+- **Frontend**
+  - MUST organize by domain: components, hooks, services, utils.
+  - Each UI component MUST be reusable and stateless where possible.
+  - Shared state MUST be managed via React Context or React Query.
+- **Backend**
+  - MUST separate API (route), service (business logic), repository (DB access), and infra (external services).
+  - Each domain folder MUST include models, schemas, and services.
+
+```typescript
+// MUST: Example folder structure
+/src/digest/
+  ├── DigestCard.tsx
+  ├── useDigest.ts
+  ├── digestService.ts
+  └── types.ts
+```
+
+```python
+# MUST: Example backend domain module
+/app/domains/digest/
+  ├── models.py
+  ├── schemas.py
+  ├── service.py
+  └── repository.py
+```
+
+### 5.2 Data Flow Patterns
+
+- **Frontend**
+  - All server data fetching MUST use React Query for caching and revalidation.
+  - Local UI state (e.g., Accordion open/close) MUST use useState/useReducer.
+- **Backend**
+  - API endpoints MUST validate input with Pydantic models.
+  - Service layer handles business logic; repository layer handles DB.
+  - Celery tasks MUST be idempotent and log status.
+
+```typescript
+// MUST: Data fetching pattern
+const { data, error } = useQuery(['digest', userId], () => fetchDigest(userId));
+```
+
+### 5.3 State Management Conventions
+
+- **Frontend**
+  - Global app state (e.g., user, theme) MUST use React Context.
+  - Server state (e.g., digests, feedback) MUST use React Query.
+  - MUST NOT use Redux or other state libraries unless justified.
+- **Backend**
+  - Application state MUST NOT be stored in memory; use Redis/PostgreSQL.
+  - Task status and cache MUST use Redis with defined TTL.
+
+### 5.4 API Design Standards
+
+- All endpoints MUST be RESTful, use nouns for resources, and support standard HTTP methods.
+- All responses MUST follow a consistent envelope: `{ data, error, meta }`.
+- All endpoints MUST be documented via OpenAPI (FastAPI auto-docs).
+- All errors MUST return appropriate HTTP status codes and messages.
+
+```python
+# MUST: API response envelope
+@app.get("/digest/{user_id}", response_model=DigestResponse)
+async def get_digest(user_id: int):
+    try:
+        digest = await service.get_digest(user_id)
+        return {"data": digest, "error": None, "meta": {"requested_at": datetime.utcnow()}}
+    except HTTPException as e:
+        return {"data": None, "error": str(e.detail), "meta": {}}
+```
+
+---
+
+## 6. Quality Criteria
+
+- All code MUST be reviewed and pass automated lint, format, and test checks before merge.
+- All business logic MUST have ≥80% unit test coverage.
+- All sensitive operations MUST be logged (excluding secrets).
+- All external API calls MUST have error handling and timeouts.
+- All code MUST be written in English, including comments, identifiers, and documentation.
+
+---
+
+**This guideline is the definitive reference for all code in this project. Adherence is mandatory for code quality, maintainability, and team velocity.**
