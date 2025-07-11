@@ -19,6 +19,22 @@ export const sampleDigests = [
           author: "john.doe",
           date: "2024-07-05",
           gerritLink: "https://gerrit.example.com/c/project/+/12345",
+          diff: `--- a/auth.py
++++ b/auth.py
+@@ -1,5 +1,6 @@
+ class Authenticator:
+-    def login(self, username, password):
+-        # simple password check
+-        if password == "secret":
+-            return True
+-        return False
++    def login_with_oauth2(self, token):
++        # OAuth2 logic here
++        print("Logging in with OAuth2")
++        if token:
++            return True
++        return False
++`
         },
       },
       {
@@ -30,6 +46,17 @@ export const sampleDigests = [
           author: "john.doe",
           date: "2024-07-06",
           gerritLink: "https://gerrit.example.com/c/project/+/12346",
+          diff: `--- a/serializer.py
++++ b/serializer.py
+@@ -10,7 +10,7 @@
+     def serialize(self, data):
+-        if len(data) > 1024:
+-            raise ValueError("Payload too large")
+         # complex serialization logic
++        if len(data) > 8192:
++            raise ValueError("Payload too large for serialization")
+         return json.dumps(data)
+`
         },
       },
     ],
@@ -54,6 +81,19 @@ export const sampleDigests = [
           author: "jane.smith",
           date: "2024-07-04",
           gerritLink: "https://gerrit.example.com/c/project/+/12347",
+          diff: `--- /dev/null
++++ b/src/models/user_profile.py
+@@ -0,0 +1,10 @@
++from pydantic import BaseModel
++
++class UserProfile(BaseModel):
++    id: int
++    username: str
++    full_name: str
++    email: str
++    is_active: bool = True
++
++`
         },
       },
     ],
