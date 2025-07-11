@@ -1,11 +1,15 @@
+'use client';
+
 import React from 'react';
+import { useWeek } from '../context/WeekContext';
 
 interface SidebarProps {
   username: string;
-  currentWeek: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ username, currentWeek }) => {
+const Sidebar: React.FC<SidebarProps> = ({ username }) => {
+  const { currentWeek, setCurrentWeek } = useWeek();
+
   // Dummy data for weekly cards
   const weeklyCards = [
     { cw: 'CW28', summaryCount: 15, dateRange: 'Jul 8 - Jul 14' },
@@ -14,6 +18,10 @@ const Sidebar: React.FC<SidebarProps> = ({ username, currentWeek }) => {
     { cw: 'CW25', summaryCount: 9, dateRange: 'Jun 17 - Jun 23' },
     { cw: 'CW24', summaryCount: 20, dateRange: 'Jun 10 - Jun 16' },
   ];
+
+  const handleCardClick = (cw: string) => {
+    setCurrentWeek(cw);
+  };
 
   return (
     <div className="p-4 flex flex-col h-full">
@@ -27,6 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ username, currentWeek }) => {
             className={`p-3 mb-2 rounded-md cursor-pointer transition-colors duration-200
               ${card.cw === currentWeek ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'}
             `}
+            onClick={() => handleCardClick(card.cw)}
             title={card.dateRange} // Tooltip
           >
             <div className="font-semibold">{card.cw}</div>

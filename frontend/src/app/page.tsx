@@ -5,8 +5,10 @@ import { useState, useRef, useEffect } from 'react';
 import { sampleDigests } from '../sampleData';
 import CommitCard from '../components/Commit/CommitCard';
 import CommitDetailPanel from '../components/Commit/CommitDetailPanel';
+import { useWeek } from '../context/WeekContext';
 
 export default function Home() {
+  const { currentWeek } = useWeek();
   const [selectedCommitId, setSelectedCommitId] = useState<string | null>(null);
   const detailPanelRef = useRef<HTMLDivElement>(null);
 
@@ -25,6 +27,8 @@ export default function Home() {
       }, 100); // Delay to allow rendering
     }
   }, [selectedCommitId]);
+
+  const filteredDigests = sampleDigests.filter(digest => digest.cw === currentWeek);
 
   const renderSummaries = (summaries: typeof sampleDigests[0]['summaries']) => {
     const rows: JSX.Element[] = [];
@@ -74,7 +78,7 @@ export default function Home() {
     <div className="p-6">
       <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Weekly Commit Digests</h2>
       <div className="space-y-8">
-        {sampleDigests.map((digest) => (
+        {filteredDigests.map((digest) => (
           <div key={digest.id}>
             <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
               {`${digest.user.username}'s Digest (${digest.startDate} - ${digest.endDate})`}

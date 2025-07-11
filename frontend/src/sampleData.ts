@@ -8,6 +8,7 @@ export const sampleDigests = [
     },
     startDate: "2024-07-01",
     endDate: "2024-07-07",
+    cw: "CW27",
     version: "1.0",
     summaries: [
       {
@@ -19,22 +20,7 @@ export const sampleDigests = [
           author: "john.doe",
           date: "2024-07-05",
           gerritLink: "https://gerrit.example.com/c/project/+/12345",
-          diff: `--- a/auth.py
-+++ b/auth.py
-@@ -1,5 +1,6 @@
- class Authenticator:
--    def login(self, username, password):
--        # simple password check
--        if password == "secret":
--            return True
--        return False
-+    def login_with_oauth2(self, token):
-+        # OAuth2 logic here
-+        print("Logging in with OAuth2")
-+        if token:
-+            return True
-+        return False
-+`
+          diff: `--- a/auth.py\n+++ b/auth.py\n@@ -1,5 +1,6 @@\n class Authenticator:\n-    def login(self, username, password):\n-        # simple password check\n-        if password == "secret":\n-            return True\n-        return False\n+    def login_with_oauth2(self, token):\n+        # OAuth2 logic here\n+        print("Logging in with OAuth2")\n+        if token:\n+            return True\n+        return False\n+`
         },
       },
       {
@@ -46,17 +32,7 @@ export const sampleDigests = [
           author: "john.doe",
           date: "2024-07-06",
           gerritLink: "https://gerrit.example.com/c/project/+/12346",
-          diff: `--- a/serializer.py
-+++ b/serializer.py
-@@ -10,7 +10,7 @@
-     def serialize(self, data):
--        if len(data) > 1024:
--            raise ValueError("Payload too large")
-         # complex serialization logic
-+        if len(data) > 8192:
-+            raise ValueError("Payload too large for serialization")
-         return json.dumps(data)
-`
+          diff: `--- a/serializer.py\n+++ b/serializer.py\n@@ -10,7 +10,7 @@\n     def serialize(self, data):\n-        if len(data) > 1024:\n-            raise ValueError("Payload too large")\n         # complex serialization logic\n+        if len(data) > 8192:\n+            raise ValueError("Payload too large for serialization")\n         return json.dumps(data)\n`
         },
       },
     ],
@@ -70,6 +46,7 @@ export const sampleDigests = [
     },
     startDate: "2024-07-01",
     endDate: "2024-07-07",
+    cw: "CW27",
     version: "1.0",
     summaries: [
       {
@@ -81,19 +58,33 @@ export const sampleDigests = [
           author: "jane.smith",
           date: "2024-07-04",
           gerritLink: "https://gerrit.example.com/c/project/+/12347",
-          diff: `--- /dev/null
-+++ b/src/models/user_profile.py
-@@ -0,0 +1,10 @@
-+from pydantic import BaseModel
-+
-+class UserProfile(BaseModel):
-+    id: int
-+    username: str
-+    full_name: str
-+    email: str
-+    is_active: bool = True
-+
-+`
+          diff: `--- /dev/null\n+++ b/src/models/user_profile.py\n@@ -0,0 +1,10 @@\n+from pydantic import BaseModel\n+\n+class UserProfile(BaseModel):\n+    id: int\n+    username: str\n+    full_name: str\n+    email: str\n+    is_active: bool = True\n+\n+`
+        },
+      },
+    ],
+  },
+  {
+    id: "digest-3",
+    user: {
+      id: "user-1",
+      username: "john.doe",
+      email: "john.doe@example.com",
+    },
+    startDate: "2024-07-08",
+    endDate: "2024-07-14",
+    cw: "CW28",
+    version: "1.0",
+    summaries: [
+      {
+        id: "summary-4",
+        content: "Added new feature for user preferences. Implemented in `preferences.py`.",
+        commit: {
+          id: "commit-4",
+          subject: "Feat: User preferences",
+          author: "john.doe",
+          date: "2024-07-09",
+          gerritLink: "https://gerrit.example.com/c/project/+/12348",
+          diff: `--- /dev/null\n+++ b/src/preferences.py\n@@ -0,0 +1,5 @@\n+class UserPreferences:\n+    def __init__(self, user_id):\n+        self.user_id = user_id\n+        self.settings = {}\n+`
         },
       },
     ],
