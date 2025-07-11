@@ -1,10 +1,10 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { sampleDigests } from '../sampleData';
 import CommitCard from '../components/Commit/CommitCard';
 import CommitDetailPanel from '../components/Commit/CommitDetailPanel';
-import AISummaryPanel from '../components/Commit/AISummaryPanel';
 
 export default function Home() {
   const [selectedCommitId, setSelectedCommitId] = useState<string | null>(null);
@@ -60,9 +60,9 @@ export default function Home() {
           <div key={`detail-${selectedCommitId}`} ref={detailPanelRef} className="mt-4 space-y-4">
             <CommitDetailPanel
               commit={selectedCommitSummary.commit}
+              summary={selectedCommitSummary.content}
               onClose={handlePanelClose}
             />
-            <AISummaryPanel summary={selectedCommitSummary.content} />
           </div>
         );
       }

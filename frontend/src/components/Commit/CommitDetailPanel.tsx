@@ -11,10 +11,11 @@ interface CommitDetailPanelProps {
     gerritLink: string;
     diff: string;
   };
+  summary: string;
   onClose: () => void;
 }
 
-const CommitDetailPanel: React.FC<CommitDetailPanelProps> = ({ commit, onClose }) => {
+const CommitDetailPanel: React.FC<CommitDetailPanelProps> = ({ commit, summary, onClose }) => {
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 col-span-3">
       <div className="flex justify-between items-center mb-4">
@@ -26,6 +27,10 @@ const CommitDetailPanel: React.FC<CommitDetailPanelProps> = ({ commit, onClose }
         </button>
       </div>
       <div className="space-y-4">
+        <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg shadow-inner border border-gray-200 dark:border-gray-700">
+          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">AI Summary</h4>
+          <p className="text-gray-700 dark:text-gray-200 text-base">{summary}</p>
+        </div>
         <div>
           <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">File Diff</h4>
           <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
