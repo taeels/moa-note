@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -11,6 +12,11 @@ export default function Home() {
   const { currentWeek } = useWeek();
   const [selectedCommitId, setSelectedCommitId] = useState<string | null>(null);
   const detailPanelRef = useRef<HTMLDivElement>(null);
+
+  // Reset selectedCommitId when currentWeek changes
+  useEffect(() => {
+    setSelectedCommitId(null);
+  }, [currentWeek]);
 
   const handleCardClick = (commitId: string) => {
     setSelectedCommitId(prevId => (prevId === commitId ? null : commitId));
@@ -52,6 +58,8 @@ export default function Home() {
               key={summary.commit.id}
               commit={summary.commit}
               onClick={() => handleCardClick(summary.commit.id)}
+              isSelected={selectedCommitId === summary.commit.id}
+              isBlurred={selectedCommitId !== null && selectedCommitId !== summary.commit.id}
             />
           ))}
         </div>
