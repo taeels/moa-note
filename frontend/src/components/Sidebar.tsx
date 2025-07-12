@@ -12,6 +12,7 @@ const Sidebar: React.FC<SidebarProps> = ({ username }) => {
 
   // Dummy data for weekly cards
   const weeklyCards = [
+    { cw: 'CW29', summaryCount: 15, dateRange: 'Jul 15 - Jul 22' },
     { cw: 'CW28', summaryCount: 15, dateRange: 'Jul 8 - Jul 14' },
     { cw: 'CW27', summaryCount: 12, dateRange: 'Jul 1 - Jul 7' },
     { cw: 'CW26', summaryCount: 18, dateRange: 'Jun 24 - Jun 30' },
