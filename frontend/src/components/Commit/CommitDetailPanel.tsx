@@ -1,6 +1,6 @@
+
 import React from 'react';
-import { Diff2Html } from 'react-diff2html';
-import 'diff2html/bundles/css/diff2html.min.css';
+import FileDiffViewer from './FileDiffViewer';
 
 interface CommitDetailPanelProps {
   commit: {
@@ -33,9 +33,7 @@ const CommitDetailPanel: React.FC<CommitDetailPanelProps> = ({ commit, summary, 
         </div>
         <div>
           <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">File Diff</h4>
-          <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-            <div>Diff Viewer Placeholder</div>
-          </div>
+          <FileDiffViewer diff={commit.diff} />
         </div>
         <div>
           <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Patchset History</h4>

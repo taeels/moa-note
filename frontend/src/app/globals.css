@@ -6,3 +6,8 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* Fix for diff2html rendering issues */
+.d2h-diff-table {
+  position: relative;
+}
