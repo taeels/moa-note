@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { sampleDigests } from '../sampleData';
+import { CommitSummary, Digest } from '../types';
 import CommitCard from '../components/Commit/CommitCard';
 import CommitDetailPanel from '../components/Commit/CommitDetailPanel';
 import { useWeek } from '../context/WeekContext';
@@ -18,7 +19,7 @@ export default function Home() {
     setSelectedCommitId(null);
   }, [currentWeek]);
 
-  const handleCardClick = (commitId: string) => {
+  const handleCardClick = (commitId: string, topicCommits?: CommitSummary[]) => {
     setSelectedCommitId(prevId => (prevId === commitId ? null : commitId));
   };
 
@@ -36,9 +37,9 @@ export default function Home() {
 
   const filteredDigests = sampleDigests.filter(digest => digest.cw === currentWeek);
 
-  const renderSummaries = (summaries: typeof sampleDigests[0]['summaries']) => {
+  const renderSummaries = (summaries: CommitSummary[]) => {
     const rows: JSX.Element[] = [];
-    let selectedCommitSummary = null;
+    let selectedCommitSummary: CommitSummary | null = null;
 
     const summariesWithDetails = summaries.map(summary => ({
       ...summary,
@@ -49,46 +50,66 @@ export default function Home() {
       },
     }));
 
-    for (let i = 0; i < summariesWithDetails.length; i += 3) {
-      const rowItems = summariesWithDetails.slice(i, i + 3);
+    const groupedSummaries: { [key: string]: CommitSummary[] } = {};
+    summariesWithDetails.forEach(summary => {
+      const topicId = summary.topicId || 'no-topic';
+      if (!groupedSummaries[topicId]) {
+        groupedSummaries[topicId] = [];
+      }
+      groupedSummaries[topicId].push(summary);
+    });
+
+    Object.keys(groupedSummaries).forEach(topicId => {
+      const topicSummaries = groupedSummaries[topicId];
+      const isTopicGroup = topicId !== 'no-topic' && topicSummaries.length > 1;
+
       rows.push(
-        <div key={`row-${i}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rowItems.map(summary => (
+        <div key={topicId} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {topicSummaries.map(summary => (
             <CommitCard
               key={summary.commit.id}
               commit={summary.commit}
-              onClick={() => handleCardClick(summary.commit.id)}
+              onClick={() => handleCardClick(summary.commit.id, isTopicGroup ? topicSummaries : undefined)}
               isSelected={selectedCommitId === summary.commit.id}
               isBlurred={selectedCommitId !== null && selectedCommitId !== summary.commit.id}
+              isTopicCommit={isTopicGroup}
             />
           ))}
         </div>
       );
+    });
 
-      const selectedInRow = rowItems.find(s => s.commit.id === selectedCommitId);
-      if (selectedInRow) {
-        selectedCommitSummary = selectedInRow;
-        rows.push(
-          <AnimatePresence>
-            {selectedCommitId && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                ref={detailPanelRef}
-                className="mt-4 space-y-4 col-span-full"
-              >
-                <CommitDetailPanel
-                  commit={selectedCommitSummary.commit}
-                  summary={selectedCommitSummary.content}
-                  onClose={handlePanelClose}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        );
-      }
+    if (selectedCommitId) {
+      selectedCommitSummary = summariesWithDetails.find(s => s.commit.id === selectedCommitId) || null;
+    }
+
+    if (selectedCommitSummary) {
+      const topicCommitsForPanel = selectedCommitSummary.topicId
+        ? groupedSummaries[selectedCommitSummary.topicId]
+        : undefined;
+
+      rows.push(
+        <AnimatePresence key={`detail-panel-${selectedCommitId}`}>
+          {selectedCommitId && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              ref={detailPanelRef}
+              className="mt-4 space-y-4 col-span-full"
+            >
+              <CommitDetailPanel
+                commit={selectedCommitSummary.commit}
+                summary={selectedCommitSummary.content}
+                onClose={handlePanelClose}
+                topicCommits={topicCommitsForPanel}
+                initialCommitId={selectedCommitId}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      );
     }
     return rows;
   };

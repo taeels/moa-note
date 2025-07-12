@@ -89,4 +89,57 @@ export const sampleDigests = [
       },
     ],
   },
+  {
+    id: "digest-4",
+    user: {
+      id: "user-3",
+      username: "alice.wonder",
+      email: "alice.wonder@example.com",
+    },
+    startDate: "2024-07-15",
+    endDate: "2024-07-21",
+    cw: "CW29",
+    version: "1.0",
+    summaries: [
+      {
+        id: "summary-5",
+        content: "Initial implementation of the new search algorithm. Focus on performance for large datasets.",
+        commit: {
+          id: "commit-5",
+          subject: "Feat: Implement new search algorithm (Part 1)",
+          author: "alice.wonder",
+          date: "2024-07-15",
+          gerritLink: "https://gerrit.example.com/c/project/+/12349",
+          diff: `--- /dev/null\n+++ b/src/search/algorithm.py\n@@ -0,0 +1,10 @@\n+def new_search(data, query):\n+    # Placeholder for new search algorithm\n+    return [item for item in data if query in item]\n+`
+        },
+        topicId: "new-search-feature",
+      },
+      {
+        id: "summary-6",
+        content: "Optimized search algorithm for edge cases and improved result relevance. Added unit tests.",
+        commit: {
+          id: "commit-6",
+          subject: "Feat: Optimize search algorithm (Part 2)",
+          author: "alice.wonder",
+          date: "2024-07-16",
+          gerritLink: "https://gerrit.example.com/c/project/+/12350",
+          diff: `--- a/src/search/algorithm.py\n+++ b/src/search/algorithm.py\n@@ -5,4 +5,8 @@\n def new_search(data, query):\n     # Placeholder for new search algorithm\n-    return [item for item in data if query in item]\n+    results = []\n+    for item in data:\n+        if query.lower() in item.lower():\n+            results.append(item)\n+    return results\n+`
+        },
+        topicId: "new-search-feature",
+      },
+      {
+        id: "summary-7",
+        content: "Integrated the new search feature into the main application UI. Updated search bar component.",
+        commit: {
+          id: "commit-7",
+          subject: "Feat: Integrate new search into UI (Part 3)",
+          author: "alice.wonder",
+          date: "2024-07-17",
+          gerritLink: "https://gerrit.example.com/c/project/+/12351",
+          diff: `--- a/src/ui/search_bar.js\n+++ b/src/ui/search_bar.js\n@@ -1,5 +1,6 @@\n import { new_search } from '../search/algorithm';\n \n function SearchBar() {\n     // ... existing code ...\n+    const results = new_search(data, query);\n     // ... display results ...\n }\n`
+        },
+        topicId: "new-search-feature",
+      },
+    ],
+  },
 ];
