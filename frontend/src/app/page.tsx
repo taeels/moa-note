@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -6,6 +5,7 @@ import { sampleDigests } from '../sampleData';
 import CommitCard from '../components/Commit/CommitCard';
 import CommitDetailPanel from '../components/Commit/CommitDetailPanel';
 import { useWeek } from '../context/WeekContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
   const { currentWeek } = useWeek();
@@ -61,13 +61,24 @@ export default function Home() {
       if (selectedInRow) {
         selectedCommitSummary = selectedInRow;
         rows.push(
-          <div key={`detail-${selectedCommitId}`} ref={detailPanelRef} className="mt-4 space-y-4">
-            <CommitDetailPanel
-              commit={selectedCommitSummary.commit}
-              summary={selectedCommitSummary.content}
-              onClose={handlePanelClose}
-            />
-          </div>
+          <AnimatePresence>
+            {selectedCommitId && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                ref={detailPanelRef}
+                className="mt-4 space-y-4 col-span-full"
+              >
+                <CommitDetailPanel
+                  commit={selectedCommitSummary.commit}
+                  summary={selectedCommitSummary.content}
+                  onClose={handlePanelClose}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         );
       }
     }
