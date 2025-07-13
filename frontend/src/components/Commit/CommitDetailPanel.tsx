@@ -78,7 +78,7 @@ const CommitDetailPanel: React.FC<CommitDetailPanelProps> = ({
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-4 min-h-[300px] overflow-y-auto">
         <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg shadow-inner border border-gray-200 dark:border-gray-700">
           <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">AI Summary</h4>
           <p className="text-gray-700 dark:text-gray-200 text-base">{activeSummary}</p>

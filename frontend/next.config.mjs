@@ -2,7 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
-  basePath: '/moanote',
+  
+  trailingSlash: true,
 };
 
 

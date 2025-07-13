@@ -10,7 +10,7 @@ interface WeekContextType {
 const WeekContext = createContext<WeekContextType | undefined>(undefined);
 
 export const WeekProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentWeek, setCurrentWeek] = useState('CW28'); // Default to CW28
+  const [currentWeek, setCurrentWeek] = useState('CW29'); // Default to CW29
 
   return (
     <WeekContext.Provider value={{ currentWeek, setCurrentWeek }}>
