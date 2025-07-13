@@ -72,7 +72,7 @@ export const sampleDigests = [
     },
     startDate: "2024-07-08",
     endDate: "2024-07-14",
-    cw: "CW28",
+    cw: "CW29",
     version: "1.0",
     summaries: [
       {
@@ -141,5 +141,30 @@ export const sampleDigests = [
         topicId: "new-search-feature",
       },
     ],
+  },
+  {
+    id: "digest-5",
+    user: {
+      id: "user-1",
+      username: "john.doe",
+      email: "john.doe@example.com",
+    },
+    startDate: "2024-07-22",
+    endDate: "2024-07-28",
+    cw: "CW30",
+    version: "1.0",
+    summaries: Array.from({ length: 11 }).map((_, i) => ({
+      id: `summary-topic-large-${i + 1}`,
+      content: `This is commit ${i + 1} of a large topic. It focuses on part ${i + 1} of the feature development.`,
+      commit: {
+        id: `commit-topic-large-${i + 1}`,
+        subject: `Large Feature Development (Part ${i + 1})`,
+        author: "john.doe",
+        date: `2024-07-22`,
+        gerritLink: `https://gerrit.example.com/c/project/+/large-topic-${i + 1}`,
+        diff: `--- a/src/feature/large_feature.py\n+++ b/src/feature/large_feature.py\n@@ -1,5 +1,6 @@\n # Content for part ${i + 1}\n`,
+      },
+      topicId: "large-feature-topic",
+    })),
   },
 ];
