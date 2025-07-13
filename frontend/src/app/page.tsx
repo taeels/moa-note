@@ -12,19 +12,32 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function Home() {
   const { currentWeek } = useWeek();
   const [selectedCommitId, setSelectedCommitId] = useState<string | null>(null);
+  const [selectedTopicCommits, setSelectedTopicCommits] = useState<CommitSummary[] | undefined>(undefined);
   const detailPanelRef = useRef<HTMLDivElement>(null);
 
-  // Reset selectedCommitId when currentWeek changes
+  // Reset selectedCommitId and selectedTopicCommits when currentWeek changes
   useEffect(() => {
     setSelectedCommitId(null);
+    setSelectedTopicCommits(undefined);
   }, [currentWeek]);
 
   const handleCardClick = (commitId: string, topicCommits?: CommitSummary[]) => {
-    setSelectedCommitId(prevId => (prevId === commitId ? null : commitId));
+    setSelectedCommitId(prevId => {
+      const newId = prevId === commitId ? null : commitId;
+      if (newId === null) {
+        setSelectedTopicCommits(undefined);
+      } else if (topicCommits) {
+        setSelectedTopicCommits(topicCommits);
+      } else {
+        setSelectedTopicCommits(undefined);
+      }
+      return newId;
+    });
   };
 
   const handlePanelClose = () => {
     setSelectedCommitId(null);
+    setSelectedTopicCommits(undefined);
   };
 
   useEffect(() => {
@@ -38,8 +51,9 @@ export default function Home() {
   const filteredDigests = sampleDigests.filter(digest => digest.cw === currentWeek);
 
   const renderSummaries = (summaries: CommitSummary[]) => {
-    const rows: JSX.Element[] = [];
+    const elements: JSX.Element[] = [];
     let selectedCommitSummary: CommitSummary | null = null;
+    let topicCommitsForPanel: CommitSummary[] | undefined = undefined;
 
     const summariesWithDetails = summaries.map(summary => ({
       ...summary,
@@ -63,32 +77,62 @@ export default function Home() {
       const topicSummaries = groupedSummaries[topicId];
       const isTopicGroup = topicId !== 'no-topic' && topicSummaries.length > 1;
 
-      rows.push(
-        <div key={topicId} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {topicSummaries.map(summary => (
+      if (isTopicGroup) {
+        const representativeCommit = topicSummaries[0].commit;
+        const topicCardCommit = {
+          ...representativeCommit,
+          subject: `Topic: ${representativeCommit.subject} (+${topicSummaries.length - 1} more commits)`,
+          id: `topic-${topicId}`,
+        };
+
+        elements.push(
+          <div key={topicId} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <CommitCard
-              key={summary.commit.id}
-              commit={summary.commit}
-              onClick={() => handleCardClick(summary.commit.id, isTopicGroup ? topicSummaries : undefined)}
-              isSelected={selectedCommitId === summary.commit.id}
-              isBlurred={selectedCommitId !== null && selectedCommitId !== summary.commit.id}
-              isTopicCommit={isTopicGroup}
+              key={topicCardCommit.id}
+              commit={topicCardCommit}
+              onClick={() => handleCardClick(topicCardCommit.id, topicSummaries)}
+              isSelected={selectedCommitId === topicCardCommit.id}
+              isBlurred={selectedCommitId !== null && selectedCommitId !== topicCardCommit.id}
+              isTopicCommit={true}
             />
-          ))}
-        </div>
-      );
+          </div>
+        );
+      } else {
+        elements.push(
+          <div key={topicId} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {topicSummaries.map(summary => (
+              <CommitCard
+                key={summary.commit.id}
+                commit={summary.commit}
+                onClick={() => handleCardClick(summary.commit.id, undefined)}
+                isSelected={selectedCommitId === summary.commit.id}
+                isBlurred={selectedCommitId !== null && selectedCommitId !== summary.commit.id}
+                isTopicCommit={false}
+              />
+            ))}
+          </div>
+        );
+      }
     });
 
     if (selectedCommitId) {
-      selectedCommitSummary = summariesWithDetails.find(s => s.commit.id === selectedCommitId) || null;
+      if (selectedCommitId.startsWith('topic-')) {
+        const topicIdFromSelected = selectedCommitId.replace('topic-', '');
+        const topicSummaries = groupedSummaries[topicIdFromSelected];
+        if (topicSummaries && topicSummaries.length > 0) {
+          selectedCommitSummary = topicSummaries[0];
+          topicCommitsForPanel = topicSummaries;
+        }
+      } else {
+        selectedCommitSummary = summariesWithDetails.find(s => s.commit.id === selectedCommitId) || null;
+        if (selectedCommitSummary && selectedCommitSummary.topicId) {
+          topicCommitsForPanel = groupedSummaries[selectedCommitSummary.topicId];
+        }
+      }
     }
 
     if (selectedCommitSummary) {
-      const topicCommitsForPanel = selectedCommitSummary.topicId
-        ? groupedSummaries[selectedCommitSummary.topicId]
-        : undefined;
-
-      rows.push(
+      elements.push(
         <AnimatePresence key={`detail-panel-${selectedCommitId}`}>
           {selectedCommitId && (
             <motion.div
@@ -104,14 +148,14 @@ export default function Home() {
                 summary={selectedCommitSummary.content}
                 onClose={handlePanelClose}
                 topicCommits={topicCommitsForPanel}
-                initialCommitId={selectedCommitId}
+                initialCommitId={selectedCommitId.startsWith('topic-') ? undefined : selectedCommitId}
               />
             </motion.div>
           )}
         </AnimatePresence>
       );
     }
-    return rows;
+    return elements;
   };
 
   return (
