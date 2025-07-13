@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Text, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Text, Boolean, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -8,6 +8,42 @@ DATABASE_URL = "postgresql://user:password@db:5432/db"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+# Junction table for many-to-many relationship between GerritSource and MonitoredGerritUser
+gerrit_source_monitored_user_association = Table(
+    'gerrit_source_monitored_user_association',
+    Base.metadata,
+    Column('gerrit_source_id', Integer, ForeignKey('gerrit_sources.id'), primary_key=True),
+    Column('monitored_gerrit_user_id', Integer, ForeignKey('monitored_gerrit_users.id'), primary_key=True)
+)
+
+class GerritSource(Base):
+    __tablename__ = "gerrit_sources"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    gerrit_url = Column(String, unique=True, index=True)
+    gerrit_version_hint = Column(String, nullable=True)
+    fetcher_type = Column(String)
+    auth_details = Column(Text, nullable=True) # Store encrypted auth details or reference to secrets
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    monitored_users = relationship("MonitoredGerritUser",
+                                   secondary=gerrit_source_monitored_user_association,
+                                   back_populates="gerrit_sources")
+
+class MonitoredGerritUser(Base):
+    __tablename__ = "monitored_gerrit_users"
+    id = Column(Integer, primary_key=True, index=True)
+    gerrit_username = Column(String, unique=True, index=True)
+    gerrit_email = Column(String, unique=True, index=True)
+    display_name = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    gerrit_sources = relationship("GerritSource",
+                                  secondary=gerrit_source_monitored_user_association,
+                                  back_populates="monitored_users")
 
 class User(Base):
     __tablename__ = "users"
