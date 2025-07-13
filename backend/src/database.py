@@ -22,7 +22,8 @@ class User(Base):
 class Commit(Base):
     __tablename__ = "commits"
     id = Column(Integer, primary_key=True, index=True)
-    gerrit_id = Column(String, unique=True, index=True)
+    gerrit_change_id = Column(String, unique=True, index=True) # Gerrit Change-Id
+    gerrit_patchset_number = Column(Integer) # Patchset number for diff retrieval
     subject = Column(String)
     message = Column(Text)
     project = Column(String)
@@ -34,6 +35,19 @@ class Commit(Base):
 
     author = relationship("User", back_populates="commits")
     commit_clusters = relationship("CommitCluster", back_populates="commit")
+    diff_cache = relationship("CommitDiffCache", back_populates="commit", uselist=False)
+
+class CommitDiffCache(Base):
+    __tablename__ = "commit_diff_cache"
+    commit_id = Column(Integer, ForeignKey("commits.id"), primary_key=True)
+    gerrit_revision_hash = Column(String) # Gerrit revision hash (SHA-1)
+    diff_content = Column(Text)
+    cached_at = Column(DateTime, default=datetime.utcnow)
+    last_checked_at = Column(DateTime, default=datetime.utcnow)
+    status = Column(String, default="not_cached") # e.g., available, stale, updating, too_large, binary, fetch_failed
+    error_message = Column(Text, nullable=True)
+
+    commit = relationship("Commit", back_populates="diff_cache")
 
 class Cluster(Base):
     __tablename__ = "clusters"
